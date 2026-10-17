@@ -1,17 +1,14 @@
 # Rishi's Daily Work Log
 
-Date: 14 October 2026
-Branch: rishi/database-design
-
 ## Work Completed
 
-Set up the GitHub repository and created my own working branch.
-Finalized the initial eSports database design.
-Created the MySQL database esports_db.
-Created tables: games, organizations, coaches, teams, players, and player_game_profiles.
-Added primary keys, foreign keys, and unique constraints.
+- Implemented and tested database integrity triggers for match status transitions, squad eligibility, team participation, roster history, tournament registrations, and game relationships.
+- Added performance validation triggers to control performance record insertion, updating, and deletion based on match status.
+- Created a second test match and validated squad eligibility, match completion, and protection of completed-match performance history.
+- Audited the database structure: 17 tables and 28 triggers.
+- Merged `rishi/database-design` into `main`, pushed the changes to GitHub, and returned to the development branch.
 
 ## Next Steps
 
-Create tables for team rosters and player transfers.
-Continue building the remaining database tables.
+- Begin analytical SQL queries, starting with tournament team standings and player rankings.
+- Test analytical queries against the sample data and commit each SQL file to GitHub.
