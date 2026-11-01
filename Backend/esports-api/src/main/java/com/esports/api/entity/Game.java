@@ -47,4 +47,21 @@ public class Game {
     public LocalDate getReleaseDate() {
         return releaseDate;
     }
+
+    public void setGameName(String gameName) {
+        this.gameName = gameName;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public void setDeveloper(String developer) {
+        this.developer = developer;
+    }
+
+    public void setReleaseDate(LocalDate releaseDate) {
+        this.releaseDate = releaseDate;
+    }
+
 }

@@ -2,12 +2,12 @@ package com.esports.api.controller;
 
 import com.esports.api.entity.Game;
 import com.esports.api.service.GameService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import com.esports.api.dto.CreateGameRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -32,6 +32,12 @@ public class GameController {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Game not found with ID: " + id));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Game createGame(@Valid @RequestBody CreateGameRequest request) {
+        return gameService.createGame(request);
     }
 
 }
