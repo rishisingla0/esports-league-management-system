@@ -21,3 +21,4 @@ public record CreateGameRequest(
     LocalDate releaseDate
 ) {
 }
+
