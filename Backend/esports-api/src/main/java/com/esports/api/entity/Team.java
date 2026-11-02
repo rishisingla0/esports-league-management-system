@@ -36,8 +36,8 @@ public class Team {
     @Column(name = "team_name", nullable = false, length = 100)
     private String teamName;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+@Column(name = "created_at", insertable = false, updatable = false)
+private LocalDateTime createdAt;
 
     public Team() {
     }

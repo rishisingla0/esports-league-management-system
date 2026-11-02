@@ -1,6 +1,7 @@
 
 package com.esports.api.service;
 
+import com.esports.api.dto.TeamResponse;
 import com.esports.api.dto.CreateTeamRequest;
 import com.esports.api.entity.*;
 import com.esports.api.repository.*;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-
+import jakarta.persistence.EntityManager;
 import java.util.List;
 
 @Service
@@ -18,32 +19,41 @@ public class TeamService {
     private final OrganizationRepository organizationRepository;
     private final GameRepository gameRepository;
     private final CoachRepository coachRepository;
+    private final EntityManager entityManager;
 
     public TeamService(
             TeamRepository teamRepository,
             OrganizationRepository organizationRepository,
             GameRepository gameRepository,
-            CoachRepository coachRepository) {
+            CoachRepository coachRepository,
+            EntityManager entityManager) {
 
         this.teamRepository = teamRepository;
         this.organizationRepository = organizationRepository;
         this.gameRepository = gameRepository;
         this.coachRepository = coachRepository;
+        this.entityManager = entityManager;
     }
+@Transactional(readOnly = true)
+public List<TeamResponse> getAllTeams() {
+    return teamRepository.findAll()
+            .stream()
+            .map(this::convertToResponse)
+            .toList();
+}
 
-    public List<Team> getAllTeams() {
-        return teamRepository.findAll();
-    }
+@Transactional(readOnly = true)
+public TeamResponse getTeamById(Long id) {
+    Team team = teamRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Team not found with ID: " + id));
 
-    public Team getTeamById(Long id) {
-        return teamRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Team not found with ID: " + id));
-    }
+    return convertToResponse(team);
+}
 
     @Transactional
-    public Team createTeam(CreateTeamRequest request) {
+    public TeamResponse createTeam(CreateTeamRequest request) {
 
         Organization organization = organizationRepository
                 .findById(request.organizationId())
@@ -84,6 +94,31 @@ public class TeamService {
             team.setCoach(coach);
         }
 
-        return teamRepository.save(team);
+Team savedTeam = teamRepository.saveAndFlush(team);
+entityManager.refresh(savedTeam);
+
+        return convertToResponse(savedTeam);
     }
+    private TeamResponse convertToResponse(Team team) {
+    return new TeamResponse(
+            team.getTeamId(),
+            team.getTeamName(),
+
+            team.getOrganization().getOrganizationId(),
+            team.getOrganization().getOrganizationName(),
+
+            team.getGame().getGameId(),
+            team.getGame().getGameName(),
+
+            team.getCoach() != null
+                    ? team.getCoach().getCoachId()
+                    : null,
+
+            team.getCoach() != null
+                    ? team.getCoach().getCoachName()
+                    : null,
+
+            team.getCreatedAt()
+    );
+}
 }
