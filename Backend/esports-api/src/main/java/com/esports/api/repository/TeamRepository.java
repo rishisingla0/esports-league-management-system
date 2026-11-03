@@ -10,5 +10,11 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
             Long gameId,
             String teamName
     );
+    boolean existsByOrganizationOrganizationIdAndGameGameIdAndTeamNameIgnoreCaseAndTeamIdNot(
+        Long organizationId,
+        Long gameId,
+        String teamName,
+        Long teamId
+);
 
 }
