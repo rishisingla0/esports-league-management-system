@@ -1,4 +1,5 @@
 
+
 USE esports_db;
 
 -- Replace the existing squad eligibility trigger
