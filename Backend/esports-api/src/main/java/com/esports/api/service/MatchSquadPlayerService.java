@@ -106,8 +106,9 @@ public class MatchSquadPlayerService {
         }
 
         MatchSquadPlayer squadPlayer = new MatchSquadPlayer();
-        squadPlayer.setMatchTeam(matchTeam);
-        squadPlayer.setPlayer(player);
+squadPlayer.setMatchTeam(matchTeam);
+squadPlayer.setMatchId(matchTeam.getMatch().getMatchId());
+squadPlayer.setPlayer(player);
 
         try {
             MatchSquadPlayer saved = squadRepository.saveAndFlush(squadPlayer);
@@ -151,7 +152,7 @@ public class MatchSquadPlayerService {
 
         return new MatchSquadPlayerResponse(
                 squadPlayer.getMatchSquadPlayerId(),
-                matchTeam.getMatch().getMatchId(),
+                squadPlayer.getMatchId(),
                 matchTeam.getMatchTeamId(),
                 matchTeam.getTeam().getTeamId(),
                 matchTeam.getTeam().getTeamName(),

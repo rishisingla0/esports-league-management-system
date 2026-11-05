@@ -25,17 +25,11 @@ public class MatchSquadPlayer {
     private Long matchSquadPlayerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-        @JoinColumn(
-            name = "match_team_id",
-            referencedColumnName = "match_team_id"
-        ),
-        @JoinColumn(
-            name = "match_id",
-            referencedColumnName = "match_id"
-        )
-    })
+    @JoinColumn(name = "match_team_id", nullable = false)
     private MatchTeam matchTeam;
+
+    @Column(name = "match_id", nullable = false)
+    private Long matchId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id", nullable = false)
@@ -57,6 +51,14 @@ public class MatchSquadPlayer {
 
     public void setMatchTeam(MatchTeam matchTeam) {
         this.matchTeam = matchTeam;
+    }
+
+    public Long getMatchId() {
+        return matchId;
+    }
+
+    public void setMatchId(Long matchId) {
+        this.matchId = matchId;
     }
 
     public Player getPlayer() {
