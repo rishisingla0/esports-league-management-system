@@ -66,7 +66,7 @@ public class PlayerPerformanceController {
         return performanceService.updatePerformance(id, request);
     }
 
-    // Delete performance
+    // Delete performance 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePerformance(@PathVariable Long id) {
