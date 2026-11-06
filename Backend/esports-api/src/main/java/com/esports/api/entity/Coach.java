@@ -1,3 +1,4 @@
+
 package com.esports.api.entity;
 
 import jakarta.persistence.*;
@@ -28,24 +29,28 @@ public class Coach {
         return coachId;
     }
 
+    public void setCoachId(Long coachId) {
+        this.coachId = coachId;
+    }
+
     public String getCoachName() {
         return coachName;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public LocalDate getHireDate() {
-        return hireDate;
     }
 
     public void setCoachName(String coachName) {
         this.coachName = coachName;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public LocalDate getHireDate() {
+        return hireDate;
     }
 
     public void setHireDate(LocalDate hireDate) {
