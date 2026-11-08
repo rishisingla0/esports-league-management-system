@@ -17,15 +17,20 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
     private final TournamentRepository tournamentRepository;
+    private final MatchTeamRepository matchTeamRepository;
+private final PlayerPerformanceRepository playerPerformanceRepository;
 
-    public MatchService(
-            MatchRepository matchRepository,
-            TournamentRepository tournamentRepository) {
+public MatchService(
+        MatchRepository matchRepository,
+        TournamentRepository tournamentRepository,
+        MatchTeamRepository matchTeamRepository,
+        PlayerPerformanceRepository playerPerformanceRepository) {
 
-        this.matchRepository = matchRepository;
-        this.tournamentRepository = tournamentRepository;
-    }
-
+    this.matchRepository = matchRepository;
+    this.tournamentRepository = tournamentRepository;
+    this.matchTeamRepository = matchTeamRepository;
+    this.playerPerformanceRepository = playerPerformanceRepository;
+}
     @Transactional(readOnly = true)
     public List<MatchResponse> getAllMatches() {
 
@@ -226,4 +231,63 @@ match.setStatus(newStatus);
                 match.getStatus()
         );
     }
+    
+@Transactional
+public MatchResponse completeMatch(Long id) {
+
+    Match match = matchRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Match not found"
+            ));
+
+    if (!"ONGOING".equalsIgnoreCase(match.getStatus())) {
+        throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Only ongoing matches can be completed"
+        );
+    }
+
+    List<MatchTeam> participatingTeams =
+            matchTeamRepository.findByMatchMatchId(id);
+
+    if (participatingTeams.isEmpty()) {
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Match has no participating teams"
+        );
+    }
+
+    if (matchTeamRepository
+            .existsByMatchMatchIdAndPlacementIsNull(id)
+            || matchTeamRepository
+            .existsByMatchMatchIdAndTotalPointsIsNull(id)) {
+
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Record placement and points for every participating team"
+        );
+    }
+
+    if (!playerPerformanceRepository.areAllPlayersRecorded(id)) {
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Record performance for every participating player"
+        );
+    }
+
+    match.setStatus("COMPLETED");
+
+    try {
+        return mapToResponse(matchRepository.saveAndFlush(match));
+
+    } catch (DataIntegrityViolationException ex) {
+        throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                getDatabaseError(ex),
+                ex
+        );
+    }
+}
+
 }

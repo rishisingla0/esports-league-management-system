@@ -48,6 +48,11 @@ public class MatchController {
         return matchService.updateMatch(id, request);
     }
 
+    @PutMapping("/{id}/complete")
+public MatchResponse completeMatch(@PathVariable Long id) {
+    return matchService.completeMatch(id);
+}
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMatch(@PathVariable Long id) {
