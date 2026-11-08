@@ -1,9 +1,9 @@
-package com.esports.api.repository;
+    package com.esports.api.repository;
 
-import com.esports.api.entity.Game;
-import org.springframework.data.jpa.repository.JpaRepository;
+    import com.esports.api.entity.Game;
+    import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface GameRepository extends JpaRepository<Game, Long> {
+    public interface GameRepository extends JpaRepository<Game, Long> {
 
-    boolean existsByGameNameIgnoreCase(String gameName);
-}
+        boolean existsByGameNameIgnoreCase(String gameName);
+    }

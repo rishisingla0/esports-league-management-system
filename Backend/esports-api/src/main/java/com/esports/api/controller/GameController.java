@@ -1,43 +1,43 @@
-package com.esports.api.controller;
+    package com.esports.api.controller;
 
-import com.esports.api.entity.Game;
-import com.esports.api.service.GameService;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-import com.esports.api.dto.CreateGameRequest;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+    import com.esports.api.entity.Game;
+    import com.esports.api.service.GameService;
+    import org.springframework.web.bind.annotation.*;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.server.ResponseStatusException;
+    import com.esports.api.dto.CreateGameRequest;
+    import jakarta.validation.Valid;
+    import org.springframework.http.HttpStatus;
 
-import java.util.List;
+    import java.util.List;
 
-@RestController
-@RequestMapping("/api/games")
-public class GameController {
+    @RestController
+    @RequestMapping("/api/games")
+    public class GameController {
 
-    private final GameService gameService;
+        private final GameService gameService;
 
-    public GameController(GameService gameService) {
-        this.gameService = gameService;
+        public GameController(GameService gameService) {
+            this.gameService = gameService;
+        }
+
+        @GetMapping
+        public List<Game> getAllGames() {
+            return gameService.getAllGames();
+        }
+
+        @GetMapping("/{id}")
+        public Game getGameById(@PathVariable Long id) {
+            return gameService.getGameById(id)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Game not found with ID: " + id));
+        }
+
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        public Game createGame(@Valid @RequestBody CreateGameRequest request) {
+            return gameService.createGame(request);
+        }
+
     }
-
-    @GetMapping
-    public List<Game> getAllGames() {
-        return gameService.getAllGames();
-    }
-
-    @GetMapping("/{id}")
-    public Game getGameById(@PathVariable Long id) {
-        return gameService.getGameById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Game not found with ID: " + id));
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Game createGame(@Valid @RequestBody CreateGameRequest request) {
-        return gameService.createGame(request);
-    }
-
-}
