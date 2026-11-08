@@ -19,4 +19,11 @@ public interface MatchTeamRepository extends JpaRepository<MatchTeam, Long> {
             Long teamId,
             Long matchTeamId
     );
+    
+boolean existsByMatchMatchIdAndPlacementIsNull(Long matchId);
+
+boolean existsByMatchMatchIdAndTotalPointsIsNull(Long matchId);
+
+
+
 }

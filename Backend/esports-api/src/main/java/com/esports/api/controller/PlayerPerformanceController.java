@@ -1,75 +1,63 @@
 package com.esports.api.controller;
 
-import com.esports.api.dto.CreatePlayerPerformanceRequest;
-import com.esports.api.dto.UpdatePlayerPerformanceRequest;
-import com.esports.api.dto.PlayerPerformanceResponse;
+import com.esports.api.dto.PlayerPerformanceRequest;
 import com.esports.api.service.PlayerPerformanceService;
-
 import jakarta.validation.Valid;
-
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/player-performances")
 public class PlayerPerformanceController {
 
-    private final PlayerPerformanceService performanceService;
+    private final PlayerPerformanceService service;
 
-    public PlayerPerformanceController(
-            PlayerPerformanceService performanceService) {
-        this.performanceService = performanceService;
+    public PlayerPerformanceController(PlayerPerformanceService service) {
+        this.service = service;
     }
 
-    // Get all performances
     @GetMapping
-    public List<PlayerPerformanceResponse> getAllPerformances() {
-        return performanceService.getAllPerformances();
+    public List<Map<String, Object>> getAll() {
+        return service.getAll();
     }
 
-    // Get performance by ID
     @GetMapping("/{id}")
-    public PlayerPerformanceResponse getPerformanceById(
-            @PathVariable Long id) {
-        return performanceService.getPerformanceById(id);
+    public Map<String, Object> getById(@PathVariable Long id) {
+        return service.getById(id);
     }
 
-    // Get performances by match
     @GetMapping("/match/{matchId}")
-    public List<PlayerPerformanceResponse> getPerformancesByMatch(
+    public List<Map<String, Object>> getByMatch(
             @PathVariable Long matchId) {
-        return performanceService.getPerformancesByMatch(matchId);
+        return service.getByMatch(matchId);
     }
 
-    // Get performances by player
-    @GetMapping("/player/{playerId}")
-    public List<PlayerPerformanceResponse> getPerformancesByPlayer(
-            @PathVariable Long playerId) {
-        return performanceService.getPerformancesByPlayer(playerId);
-    }
-
-    // Create performance
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PlayerPerformanceResponse addPerformance(
-            @Valid @RequestBody CreatePlayerPerformanceRequest request) {
-        return performanceService.addPerformance(request);
+    public ResponseEntity<Map<String, Long>> create(
+            @Valid @RequestBody PlayerPerformanceRequest request) {
+
+        Long id = service.create(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("performanceId", id));
     }
 
-    // Update performance
     @PutMapping("/{id}")
-    public PlayerPerformanceResponse updatePerformance(
+    public ResponseEntity<Void> update(
             @PathVariable Long id,
-            @Valid @RequestBody UpdatePlayerPerformanceRequest request) {
-        return performanceService.updatePerformance(id, request);
+            @Valid @RequestBody PlayerPerformanceRequest request) {
+
+        service.update(id, request);
+        return ResponseEntity.noContent().build();
     }
 
-    // Delete performance 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletePerformance(@PathVariable Long id) {
-        performanceService.deletePerformance(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

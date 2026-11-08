@@ -127,7 +127,16 @@ public class MatchService {
         match.setMatchNumber(request.matchNumber());
         match.setMapName(request.mapName().trim());
         match.setScheduledAt(request.scheduledAt());
-        match.setStatus(request.status().trim().toUpperCase());
+        String newStatus = request.status().trim().toUpperCase();
+
+if ("COMPLETED".equals(newStatus)) {
+    throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Use the complete match endpoint to complete a match"
+    );
+}
+
+match.setStatus(newStatus);
 
         try {
             return mapToResponse(

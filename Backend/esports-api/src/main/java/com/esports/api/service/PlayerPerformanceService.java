@@ -1,201 +1,93 @@
 package com.esports.api.service;
 
-import com.esports.api.dto.CreatePlayerPerformanceRequest;
-import com.esports.api.dto.UpdatePlayerPerformanceRequest;
-import com.esports.api.dto.PlayerPerformanceResponse;
-import com.esports.api.entity.MatchSquadPlayer;
-import com.esports.api.entity.MatchTeam;
-import com.esports.api.entity.Player;
-import com.esports.api.entity.PlayerPerformance;
-import com.esports.api.repository.MatchSquadPlayerRepository;
+import com.esports.api.dto.PlayerPerformanceRequest;
 import com.esports.api.repository.PlayerPerformanceRepository;
-
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
-@Transactional
 public class PlayerPerformanceService {
 
-    private final PlayerPerformanceRepository performanceRepository;
-    private final MatchSquadPlayerRepository squadPlayerRepository;
+    private final PlayerPerformanceRepository repository;
 
-    public PlayerPerformanceService(
-            PlayerPerformanceRepository performanceRepository,
-            MatchSquadPlayerRepository squadPlayerRepository) {
-
-        this.performanceRepository = performanceRepository;
-        this.squadPlayerRepository = squadPlayerRepository;
+    public PlayerPerformanceService(PlayerPerformanceRepository repository) {
+        this.repository = repository;
     }
 
-    // Get all performance records
     @Transactional(readOnly = true)
-    public List<PlayerPerformanceResponse> getAllPerformances() {
-        return performanceRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+    public List<Map<String, Object>> getAll() {
+        return repository.getAll();
     }
 
-    // Get performance by ID
     @Transactional(readOnly = true)
-    public PlayerPerformanceResponse getPerformanceById(Long id) {
+    public Map<String, Object> getById(Long id) {
+        List<Map<String, Object>> result = repository.getById(id);
 
-        PlayerPerformance performance = performanceRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Performance record not found"
-                ));
-
-        return mapToResponse(performance);
-    }
-
-    // Get performances by match
-    @Transactional(readOnly = true)
-    public List<PlayerPerformanceResponse> getPerformancesByMatch(Long matchId) {
-
-        return performanceRepository.findByMatchSquadPlayerMatchId(matchId)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    // Get performances by player
-    @Transactional(readOnly = true)
-    public List<PlayerPerformanceResponse> getPerformancesByPlayer(Long playerId) {
-
-        return performanceRepository.findByMatchSquadPlayerPlayerPlayerId(playerId)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    // Create performance record
-    public PlayerPerformanceResponse addPerformance(
-            CreatePlayerPerformanceRequest request) {
-
-        MatchSquadPlayer squadPlayer = squadPlayerRepository
-                .findById(request.matchSquadPlayerId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Match squad player not found"
-                ));
-
-        if (performanceRepository.existsByMatchSquadPlayerMatchSquadPlayerId(
-                request.matchSquadPlayerId())) {
-
+        if (result.isEmpty()) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Performance record already exists for this player in this match"
+                    HttpStatus.NOT_FOUND, "Performance not found"
             );
         }
 
-        PlayerPerformance performance = new PlayerPerformance();
+        return result.get(0);
+    }
 
-        performance.setMatchSquadPlayer(squadPlayer);
-        performance.setKills(request.kills());
-        performance.setDamage(request.damage());
-        performance.setSurvivalTimeSeconds(request.survivalTimeSeconds());
-        performance.setAssists(request.assists());
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getByMatch(Long matchId) {
+        return repository.getByMatch(matchId);
+    }
 
+    @Transactional
+    public Long create(PlayerPerformanceRequest request) {
         try {
-            PlayerPerformance saved = performanceRepository.saveAndFlush(performance);
-            return mapToResponse(saved);
-
-        } catch (DataIntegrityViolationException ex) {
+            return repository.create(request);
+        } catch (DataAccessException ex) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Performance record violates a database constraint or match-status rule"
+                    "Could not create performance. Check match eligibility and duplicate records."
             );
         }
     }
 
-    // Update performance record
-    public PlayerPerformanceResponse updatePerformance(
-            Long id,
-            UpdatePlayerPerformanceRequest request) {
-
-        PlayerPerformance performance = performanceRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Performance record not found"
-                ));
-
-        if (request.kills() != null) {
-            performance.setKills(request.kills());
-        }
-
-        if (request.damage() != null) {
-            performance.setDamage(request.damage());
-        }
-
-        if (request.survivalTimeSeconds() != null) {
-            performance.setSurvivalTimeSeconds(request.survivalTimeSeconds());
-        }
-
-        if (request.assists() != null) {
-            performance.setAssists(request.assists());
-        }
-
+    @Transactional
+    public void update(Long id, PlayerPerformanceRequest request) {
         try {
-            PlayerPerformance updated = performanceRepository.saveAndFlush(performance);
-            return mapToResponse(updated);
+            int updated = repository.update(id, request);
 
-        } catch (DataIntegrityViolationException ex) {
+            if (updated == 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Performance not found"
+                );
+            }
+        } catch (DataAccessException ex) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Performance update violates a database constraint or match-status rule"
+                    "Could not update performance. Check match status and constraints."
             );
         }
     }
 
-    // Delete performance record
-    public void deletePerformance(Long id) {
-
-        PlayerPerformance performance = performanceRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Performance record not found"
-                ));
-
+    @Transactional
+    public void delete(Long id) {
         try {
-            performanceRepository.delete(performance);
-            performanceRepository.flush();
+            int deleted = repository.delete(id);
 
-        } catch (DataIntegrityViolationException ex) {
+            if (deleted == 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Performance not found"
+                );
+            }
+        } catch (DataAccessException ex) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Performance cannot be deleted due to a database constraint or match-status rule"
+                    "Could not delete performance. Check match status."
             );
         }
-    }
-
-    // Convert entity to response DTO
-    private PlayerPerformanceResponse mapToResponse(
-            PlayerPerformance performance) {
-
-        MatchSquadPlayer squadPlayer = performance.getMatchSquadPlayer();
-        MatchTeam matchTeam = squadPlayer.getMatchTeam();
-        Player player = squadPlayer.getPlayer();
-
-        return new PlayerPerformanceResponse(
-                performance.getPerformanceId(),
-                squadPlayer.getMatchSquadPlayerId(),
-                squadPlayer.getMatchId(),
-                matchTeam.getMatchTeamId(),
-                matchTeam.getTeam().getTeamId(),
-                matchTeam.getTeam().getTeamName(),
-                player.getPlayerId(),
-                player.getPlayerName(),
-                performance.getKills(),
-                performance.getDamage(),
-                performance.getSurvivalTimeSeconds(),
-                performance.getAssists()
-        );
     }
 }
