@@ -49,10 +49,7 @@ public class TeamRosterService {
 
         try {
             return mapToResponse(repository.saveAndFlush(roster));
-        } catch (DataAccessException ex)
-
-
- {
+        } catch (DataAccessException ex) {
             throw conflict();
         }
     }
