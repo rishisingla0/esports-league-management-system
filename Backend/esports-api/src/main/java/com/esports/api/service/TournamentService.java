@@ -118,7 +118,7 @@ public class TournamentService {
         tournament.setStatus(
                 request.status() == null
                         ? "UPCOMING"
-                        : request.status().toUpperCase());
+                        : request.status().trim().toUpperCase());
     }
 
     private TournamentResponse convertToResponse(

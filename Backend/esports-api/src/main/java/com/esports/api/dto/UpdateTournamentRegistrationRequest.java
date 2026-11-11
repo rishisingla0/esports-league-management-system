@@ -5,10 +5,10 @@ import java.time.LocalDate;
 
 public record UpdateTournamentRegistrationRequest(
 
-    @NotNull
+    @NotNull @Positive
     Long tournamentId,
 
-    @NotNull
+    @NotNull @Positive
     Long teamId,
 
     @NotNull

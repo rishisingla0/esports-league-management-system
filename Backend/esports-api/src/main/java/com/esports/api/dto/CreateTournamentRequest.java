@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record CreateTournamentRequest(
 
     @NotNull
+    @Positive
     Long gameId,
 
     @NotBlank

@@ -5,8 +5,9 @@ import java.time.LocalDateTime;
 
 public record UpdateMatchRequest(
 
-    @NotNull
-    Long tournamentId,
+@NotNull
+@Positive
+Long tournamentId,
 
     @NotNull
     @Positive

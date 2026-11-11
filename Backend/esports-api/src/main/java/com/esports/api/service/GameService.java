@@ -1,10 +1,13 @@
+
 package com.esports.api.service;
 
+import com.esports.api.dto.CreateGameRequest;
 import com.esports.api.entity.Game;
 import com.esports.api.repository.GameRepository;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import com.esports.api.dto.CreateGameRequest;
-import java.util.Locale;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +30,17 @@ public class GameService {
     }
 
     public Game createGame(CreateGameRequest request) {
+
+        // Check for duplicate game names
+        if (gameRepository.existsByGameNameIgnoreCase(
+                request.gameName().trim())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Game already exists"
+            );
+        }
+
         Game game = new Game();
 
         game.setGameName(request.gameName().trim());
@@ -36,5 +50,4 @@ public class GameService {
 
         return gameRepository.save(game);
     }
-
 }

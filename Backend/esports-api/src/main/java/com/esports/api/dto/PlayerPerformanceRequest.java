@@ -2,10 +2,12 @@ package com.esports.api.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public record PlayerPerformanceRequest(
 
         @NotNull(message = "Match squad player ID is required")
+        @Positive(message = "Match squad player ID must be positive")
         Long matchSquadPlayerId,
 
         @NotNull(message = "Kills are required")

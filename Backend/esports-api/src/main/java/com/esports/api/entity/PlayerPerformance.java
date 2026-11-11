@@ -13,7 +13,7 @@ public class PlayerPerformance {
     private Long performanceId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "match_squad_player_id", nullable = false, unique = true)
+    @JoinColumn(name = "match_squad_player_id" , nullable = false, unique = true)
     private MatchSquadPlayer matchSquadPlayer;
 
     @Column(name = "kills", nullable = false)
