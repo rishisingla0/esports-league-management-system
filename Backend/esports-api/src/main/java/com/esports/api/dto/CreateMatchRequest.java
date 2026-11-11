@@ -5,8 +5,9 @@ import java.time.LocalDateTime;
 
 public record CreateMatchRequest(
 
-    @NotNull
-    Long tournamentId,
+@NotNull
+@Positive
+Long tournamentId,
 
     @NotNull
     @Positive
