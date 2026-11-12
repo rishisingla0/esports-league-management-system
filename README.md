@@ -2,7 +2,7 @@
 
 A database-driven eSports tournament management platform for organizing games, organizations, teams, players, tournaments, match participation, player performance, sponsorships, and prize distributions.
 
-The project is being developed with a Spring Boot REST API, a MySQL relational database, and a Next.js frontend.
+The project is developed with a **Spring Boot REST API**, a **MySQL relational database**, and a **Next.js frontend**.
 
 ## Technology Stack
 
@@ -39,6 +39,9 @@ The project is being developed with a Spring Boot REST API, a MySQL relational d
 - Coach management
 - Sponsor and team sponsorship management
 - Tournament prize distributions
+- Dashboard summary and statistics
+- Player and team leaderboards
+- Tournament and match analytics
 
 ## Backend Development Status
 
@@ -66,19 +69,44 @@ The core CRUD REST API modules have been implemented and tested through Postman.
 
 API testing has covered CRUD operations, request validation, foreign-key constraints, uniqueness constraints, and not-found responses where applicable.
 
-## Planned Next Steps
+### Additional APIs
 
-- Dashboard summary and statistics APIs
-- Player and team leaderboards
-- Tournament standings and analytics
-- Connect the Next.js frontend to the Spring Boot APIs
-- End-to-end testing and UI polish
+The following application-level APIs are also implemented and integrated with the frontend:
+
+- Dashboard summary and statistics
+- Top kills, damage, and assists leaderboards
+- Tournament analytics and standings
+- Tournament match and prize information
+- Match analytics and team comparison
+- Match MVP and player statistics
+- Match result retrieval and updates
+
+## Frontend Integration
+
+The Next.js frontend communicates with the Spring Boot backend through REST APIs.
+
+The frontend API base URL is configured using the `NEXT_PUBLIC_API_URL` environment variable. The shared API request helper is maintained in `src/lib/api.ts`.
+
+The frontend includes pages for:
+- Dashboard
+- Tournaments and tournament details
+- Teams
+- Players
+- Leaderboards
+- Analytics
 
 ## Database
 
 The project uses a local MySQL database named `esports_db` during development. Database schema, constraints, and related SQL scripts are maintained separately from the application code.
 
 ## Backend Setup
+
+### Prerequisites
+- Java 21
+- MySQL 8
+- Maven (or the included Maven Wrapper)
+
+### Steps
 
 1. Install Java 21 and MySQL 8.
 2. Create/configure the `esports_db` database using the project's SQL scripts.
@@ -90,7 +118,7 @@ The project uses a local MySQL database named `esports_db` during development. D
    .\mvnw.cmd spring-boot:run
    ```
 
-The API is available locally at:
+The backend runs locally at:
 
 ```text
 http://localhost:8080
