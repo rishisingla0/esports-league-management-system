@@ -69,8 +69,14 @@ public class SecurityConfig {
             // Keep existing APIs working during implementation.
             // We'll add role-based restrictions to manager and organizer
             // endpoints after those endpoints are implemented.
-            .authorizeHttpRequests(auth ->
-                auth.anyRequest().permitAll()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/api/auth/register",
+                    "/api/auth/login",
+                    "/api/health"
+                ).permitAll()
+                .requestMatchers("/api/auth/me").authenticated()
+                .anyRequest().permitAll()
             )
 
             .authenticationProvider(authenticationProvider())
