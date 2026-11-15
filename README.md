@@ -123,6 +123,59 @@ The backend runs locally at:
 ```text
 http://localhost:8080
 ```
+## Backend Setup
+
+### Prerequisites
+- Java 21
+- MySQL 8
+- Maven (or the included Maven Wrapper)
+
+### 1. Start MySQL Server
+
+Open your backend project terminal in VS Code and run:
+
+```powershell
+net start MySQL80
+```
+
+If MySQL is already running, you can skip this step.
+
+### 2. Open MySQL Command-Line Client
+
+Run:
+
+```powershell
+& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p
+```
+
+Enter your MySQL root password when prompted.
+
+To switch to the project database:
+
+```sql
+USE esports_db;
+```
+
+### 3. Start Spring Boot Backend
+
+Open a new terminal in the backend project directory and run:
+
+```powershell
+$env:DB_PASSWORD="YOUR_MYSQL_PASSWORD"
+.\mvnw.cmd spring-boot:run
+```
+
+The backend API will be available at:
+
+```text
+http://localhost:8080
+```
+
+**Note:**
+- `net start MySQL80` may require PowerShell to be opened as Administrator.
+- If MySQL is already running, skip the start command.
+- Set `DB_PASSWORD` in the same terminal where Spring Boot is started.
+- The MySQL command-line path assumes the default MySQL Server 8.0 installation directory.
 
 ## API Base Path
 
