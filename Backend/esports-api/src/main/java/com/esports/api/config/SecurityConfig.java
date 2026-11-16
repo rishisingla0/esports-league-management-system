@@ -3,6 +3,8 @@ package com.esports.api.config;
 
 import com.esports.api.service.CustomUserDetailsService;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +18,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
@@ -54,10 +60,39 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:3000")
+        );
+
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+        );
+
+        configuration.setAllowedHeaders(
+                List.of("Authorization", "Content-Type", "Accept")
+        );
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
             .csrf(csrf -> csrf.disable())
 
             .sessionManagement(session ->
@@ -66,18 +101,15 @@ public class SecurityConfig {
                 )
             )
 
-            // Keep existing APIs working during implementation.
-            // We'll add role-based restrictions to manager and organizer
-            // endpoints after those endpoints are implemented.
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers(
-                "/api/auth/register",
-                "/api/auth/login",
-                "/api/health"
-            ).permitAll()
-            .requestMatchers("/api/auth/me").authenticated()
-            .requestMatchers("/api/onboarding/**").hasRole("TEAM_MANAGER")
-            .anyRequest().permitAll()
+                .requestMatchers(
+                    "/api/auth/register",
+                    "/api/auth/login",
+                    "/api/health"
+                ).permitAll()
+                .requestMatchers("/api/auth/me").authenticated()
+                .requestMatchers("/api/onboarding/**").hasRole("TEAM_MANAGER")
+                .anyRequest().permitAll()
             )
 
             .authenticationProvider(authenticationProvider())
