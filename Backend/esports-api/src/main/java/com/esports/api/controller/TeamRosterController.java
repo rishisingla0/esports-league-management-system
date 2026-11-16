@@ -34,6 +34,13 @@ public class TeamRosterController {
         return service.getByTeam(teamId);
     }
 
+    @GetMapping("/team/{teamId}/active")
+    public List<TeamRosterResponse> getActiveByTeam(
+            @PathVariable Long teamId) {
+        return service.getActiveByTeam(teamId);
+    }
+
+
     @GetMapping("/player/{playerId}")
     public List<TeamRosterResponse> getByPlayer(@PathVariable Long playerId) {
         return service.getByPlayer(playerId);

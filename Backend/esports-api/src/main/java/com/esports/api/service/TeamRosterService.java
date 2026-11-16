@@ -1,13 +1,17 @@
+
 package com.esports.api.service;
 
 import com.esports.api.dto.*;
 import com.esports.api.entity.TeamRoster;
 import com.esports.api.repository.TeamRosterRepository;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.dao.DataAccessException;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -33,6 +37,12 @@ public class TeamRosterService {
                 .stream().map(this::mapToResponse).toList();
     }
 
+    public List<TeamRosterResponse> getActiveByTeam(Long teamId) {
+        return repository.findByTeamIdAndStatusOrderByRosterIdAsc(
+                        teamId, "ACTIVE")
+                .stream().map(this::mapToResponse).toList();
+    }
+
     public List<TeamRosterResponse> getByPlayer(Long playerId) {
         return repository.findByPlayerIdOrderByRosterIdAsc(playerId)
                 .stream().map(this::mapToResponse).toList();
@@ -42,7 +52,16 @@ public class TeamRosterService {
     public TeamRosterResponse create(CreateTeamRosterRequest request) {
         validateDates(request.startDate(), request.endDate());
 
+        if ("ACTIVE".equals(request.status())
+                && repository.existsByTeamIdAndPlayerIdAndStatus(
+                        request.teamId(), request.playerId(), "ACTIVE")) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Player is already active in this team's roster");
+        }
+
         TeamRoster roster = new TeamRoster();
+
         applyRequest(roster, request.teamId(), request.playerId(),
                 request.role(), request.startDate(), request.endDate(),
                 request.status());
@@ -55,10 +74,24 @@ public class TeamRosterService {
     }
 
     @Transactional
-    public TeamRosterResponse update(Long id, UpdateTeamRosterRequest request) {
+    public TeamRosterResponse update(
+            Long id, UpdateTeamRosterRequest request) {
+
         validateDates(request.startDate(), request.endDate());
 
         TeamRoster roster = findRoster(id);
+
+        if ("ACTIVE".equals(request.status())
+                && repository.existsByTeamIdAndPlayerIdAndStatus(
+                        request.teamId(), request.playerId(), "ACTIVE")
+                && (!request.teamId().equals(roster.getTeamId())
+                || !request.playerId().equals(roster.getPlayerId())
+                || !"ACTIVE".equals(roster.getStatus()))) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Player is already active in this team's roster");
+        }
 
         applyRequest(roster, request.teamId(), request.playerId(),
                 request.role(), request.startDate(), request.endDate(),
@@ -66,10 +99,7 @@ public class TeamRosterService {
 
         try {
             return mapToResponse(repository.saveAndFlush(roster));
-        } catch (DataAccessException ex)
-
-
- {
+        } catch (DataAccessException ex) {
             throw conflict();
         }
     }
@@ -78,13 +108,13 @@ public class TeamRosterService {
     public void delete(Long id) {
         TeamRoster roster = findRoster(id);
 
+        // Preserve roster history instead of permanently deleting it.
+        roster.setStatus("INACTIVE");
+        roster.setEndDate(LocalDate.now());
+
         try {
-            repository.delete(roster);
-            repository.flush();
-        } catch (DataAccessException ex)
-
-
- {
+            repository.saveAndFlush(roster);
+        } catch (DataAccessException ex) {
             throw conflict();
         }
     }
@@ -95,10 +125,7 @@ public class TeamRosterService {
                         HttpStatus.NOT_FOUND, "Team roster not found"));
     }
 
-    private void validateDates(
-            java.time.LocalDate startDate,
-            java.time.LocalDate endDate) {
-
+    private void validateDates(LocalDate startDate, LocalDate endDate) {
         if (endDate != null && endDate.isBefore(startDate)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -111,8 +138,8 @@ public class TeamRosterService {
             Long teamId,
             Long playerId,
             String role,
-            java.time.LocalDate startDate,
-            java.time.LocalDate endDate,
+            LocalDate startDate,
+            LocalDate endDate,
             String status) {
 
         roster.setTeamId(teamId);
