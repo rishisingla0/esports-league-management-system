@@ -70,13 +70,14 @@ public class SecurityConfig {
             // We'll add role-based restrictions to manager and organizer
             // endpoints after those endpoints are implemented.
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/auth/register",
-                    "/api/auth/login",
-                    "/api/health"
-                ).permitAll()
-                .requestMatchers("/api/auth/me").authenticated()
-                .anyRequest().permitAll()
+            .requestMatchers(
+                "/api/auth/register",
+                "/api/auth/login",
+                "/api/health"
+            ).permitAll()
+            .requestMatchers("/api/auth/me").authenticated()
+            .requestMatchers("/api/onboarding/**").hasRole("TEAM_MANAGER")
+            .anyRequest().permitAll()
             )
 
             .authenticationProvider(authenticationProvider())
