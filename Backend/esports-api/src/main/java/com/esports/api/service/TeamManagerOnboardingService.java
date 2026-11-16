@@ -4,6 +4,8 @@ package com.esports.api.service;
 import com.esports.api.dto.CreateOrganizationAndTeamRequest;
 import com.esports.api.dto.TeamOnboardingRequest;
 import com.esports.api.dto.TeamOnboardingResponse;
+import com.esports.api.dto.ManagerProfileResponse;
+
 import com.esports.api.entity.*;
 import com.esports.api.repository.*;
 
@@ -35,6 +37,7 @@ public class TeamManagerOnboardingService {
         this.profileRepository = profileRepository;
     }
 
+    // CREATE NEW ORGANIZATION + TEAM
     @Transactional
     public TeamOnboardingResponse createOrganizationAndTeam(
             String email,
@@ -47,10 +50,15 @@ public class TeamManagerOnboardingService {
 
         if (organizationRepository.existsByOrganizationNameIgnoreCase(
                 organizationName)) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Organization already exists. Select the existing organization instead.");
         }
+
+        Game game = gameRepository.findById(request.gameId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Game not found"));
 
         Organization organization = new Organization();
         organization.setOrganizationName(organizationName);
@@ -61,19 +69,18 @@ public class TeamManagerOnboardingService {
         Organization savedOrganization =
                 organizationRepository.saveAndFlush(organization);
 
-        Game game = gameRepository.findById(request.gameId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Game not found"));
-
         Team team = createTeam(
                 savedOrganization,
                 game,
                 request.teamName());
 
-        return linkManagerToTeam(user, team,
+        return linkManagerToTeam(
+                user,
+                team,
                 "Organization and team created successfully");
     }
 
+    // CREATE TEAM IN EXISTING ORGANIZATION
     @Transactional
     public TeamOnboardingResponse createTeamInExistingOrganization(
             String email,
@@ -96,11 +103,15 @@ public class TeamManagerOnboardingService {
                 game,
                 request.teamName());
 
-        return linkManagerToTeam(user, team,
+        return linkManagerToTeam(
+                user,
+                team,
                 "Team created and linked to your account successfully");
     }
 
+    // FIND AND VALIDATE MANAGER
     private User getManager(String email) {
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found"));
@@ -114,7 +125,9 @@ public class TeamManagerOnboardingService {
         return user;
     }
 
+    // CHECK ONE-TEAM RESTRICTION
     private void checkManagerHasNoTeam(Long userId) {
+
         if (profileRepository.existsById(userId)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
@@ -122,6 +135,7 @@ public class TeamManagerOnboardingService {
         }
     }
 
+    // CREATE TEAM
     private Team createTeam(
             Organization organization,
             Game game,
@@ -148,6 +162,7 @@ public class TeamManagerOnboardingService {
         return teamRepository.saveAndFlush(team);
     }
 
+    // LINK MANAGER TO TEAM
     private TeamOnboardingResponse linkManagerToTeam(
             User user,
             Team team,
@@ -169,5 +184,54 @@ public class TeamManagerOnboardingService {
                 team.getGame().getGameName(),
                 message
         );
+    }
+
+    // GET LOGGED-IN MANAGER PROFILE
+    @Transactional(readOnly = true)
+    public ManagerProfileResponse getMyProfile(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!user.isEnabled() || !"TEAM_MANAGER".equals(user.getRole())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        return profileRepository.findByUserUserId(user.getUserId())
+                .map(profile -> {
+
+                    Team team = profile.getTeam();
+                    Organization organization = team.getOrganization();
+                    Game game = team.getGame();
+
+                    return new ManagerProfileResponse(
+                            user.getUserId(),
+                            user.getFullName(),
+                            user.getEmail(),
+                            user.getRole(),
+                            true,
+                            organization.getOrganizationId(),
+                            organization.getOrganizationName(),
+                            team.getTeamId(),
+                            team.getTeamName(),
+                            game.getGameId(),
+                            game.getGameName()
+                    );
+                })
+                .orElseGet(() -> new ManagerProfileResponse(
+                        user.getUserId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRole(),
+                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ));
     }
 }

@@ -4,6 +4,7 @@ package com.esports.api.controller;
 import com.esports.api.dto.CreateOrganizationAndTeamRequest;
 import com.esports.api.dto.TeamOnboardingRequest;
 import com.esports.api.dto.TeamOnboardingResponse;
+import com.esports.api.dto.ManagerProfileResponse;
 import com.esports.api.service.TeamManagerOnboardingService;
 
 import jakarta.validation.Valid;
@@ -40,5 +41,12 @@ public class TeamManagerOnboardingController {
 
         return onboardingService.createTeamInExistingOrganization(
                 authentication.getName(), request);
+    }
+
+    @GetMapping("/me")
+    public ManagerProfileResponse getMyProfile(
+            Authentication authentication) {
+
+        return onboardingService.getMyProfile(authentication.getName());
     }
 }
