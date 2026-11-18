@@ -24,6 +24,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+
+import jakarta.servlet.DispatcherType;
 
 @Configuration
 public class SecurityConfig {
@@ -44,6 +49,17 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
+    @Bean
+public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
+        JwtAuthenticationFilter filter) {
+
+    FilterRegistrationBean<JwtAuthenticationFilter> registration =
+            new FilterRegistrationBean<>(filter);
+
+    registration.setEnabled(false);
+
+    return registration;
+}
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -93,10 +109,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
-        http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
+
+                .exceptionHandling(exception -> exception
+                    .authenticationEntryPoint(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
+                    )
+                )
 
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
@@ -105,6 +127,7 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 
                 // Public endpoints
                 .requestMatchers(
@@ -152,10 +175,10 @@ public class SecurityConfig {
                 ).hasRole("TEAM_MANAGER")
 
                 // Organizer tournament operations
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/tournaments/**"
-                ).hasRole("ORGANIZER")
+.requestMatchers(
+    HttpMethod.POST,
+    "/api/tournaments/**"
+).hasRole("ORGANIZER")
 
                 .requestMatchers(
                     HttpMethod.PUT,
