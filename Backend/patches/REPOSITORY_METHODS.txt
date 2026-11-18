@@ -1,0 +1,14 @@
+Add the following derived query method to TeamRosterRepository.java only if it is missing:
+
+// Existing method already appears in your project:
+List<TeamRoster> findByTeamIdAndStatusOrderByRosterIdAsc(Long teamId, String status);
+
+Add this method to TournamentRegistrationRepository.java:
+
+List<TournamentRegistration> findByTeamTeamIdOrderByRegistrationIdDesc(Long teamId);
+
+Add this method to MatchTeamRepository.java:
+
+List<MatchTeam> findByTeamTeamIdOrderByMatchMatchIdDesc(Long teamId);
+
+Keep all existing imports and methods. Add java.util.List imports if missing.

@@ -1,0 +1,5 @@
+In SecurityConfig.java, inside authorizeHttpRequests(...), add this matcher BEFORE .anyRequest().denyAll():
+
+.requestMatchers("/api/manager/workspace/**").hasRole("TEAM_MANAGER")
+
+This is required because these new manager-only endpoints must not be public. Do not replace your existing security rules.

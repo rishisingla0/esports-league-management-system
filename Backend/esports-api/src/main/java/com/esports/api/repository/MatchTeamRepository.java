@@ -24,6 +24,10 @@ boolean existsByMatchMatchIdAndPlacementIsNull(Long matchId);
 
 boolean existsByMatchMatchIdAndTotalPointsIsNull(Long matchId);
 
+List<MatchTeam> findByTeamTeamIdOrderByMatchMatchIdDesc(
+    Long teamId
+);
+
 
 
 }
