@@ -152,7 +152,8 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
                     "/api/leaderboards/**",
                     "/api/analytics/**",
                     "/api/matches/**",
-                    "/api/match-results/**"
+                    "/api/match-results/**",
+                     "/api/dashboard/summary"
                 ).permitAll()
 
                 // Team Manager operations
