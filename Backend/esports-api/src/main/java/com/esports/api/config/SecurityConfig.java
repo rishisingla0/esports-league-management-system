@@ -5,8 +5,10 @@ import com.esports.api.service.CustomUserDetailsService;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -29,6 +31,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.cors.allowed-origin:http://localhost:3000}")
+    private String frontendOrigin;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
@@ -64,9 +69,7 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:3000")
-        );
+        configuration.setAllowedOrigins(List.of(frontendOrigin));
 
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
@@ -102,14 +105,70 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
+
+                // Public endpoints
                 .requestMatchers(
                     "/api/auth/register",
                     "/api/auth/login",
                     "/api/health"
                 ).permitAll()
-                .requestMatchers("/api/auth/me").authenticated()
-                .requestMatchers("/api/onboarding/**").hasRole("TEAM_MANAGER")
-                .anyRequest().permitAll()
+
+                // Current user
+                .requestMatchers("/api/auth/me")
+                    .authenticated()
+
+                // Public browsing
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/games/**",
+                    "/api/organizations/**",
+                    "/api/tournaments/**",
+                    "/api/teams/**",
+                    "/api/players/**",
+                    "/api/coaches/**",
+                    "/api/leaderboards/**",
+                    "/api/analytics/**",
+                    "/api/matches/**",
+                    "/api/match-results/**"
+                ).permitAll()
+
+                // Team Manager operations
+                .requestMatchers("/api/onboarding/**")
+                    .hasRole("TEAM_MANAGER")
+
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/api/teams/**"
+                ).hasRole("TEAM_MANAGER")
+
+                .requestMatchers(
+                    HttpMethod.PUT,
+                    "/api/teams/**"
+                ).hasRole("TEAM_MANAGER")
+
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/api/teams/**"
+                ).hasRole("TEAM_MANAGER")
+
+                // Organizer tournament operations
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/api/tournaments/**"
+                ).hasRole("ORGANIZER")
+
+                .requestMatchers(
+                    HttpMethod.PUT,
+                    "/api/tournaments/**"
+                ).hasRole("ORGANIZER")
+
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/api/tournaments/**"
+                ).hasRole("ORGANIZER")
+
+                // Everything else requires an explicit rule
+                .anyRequest().denyAll()
             )
 
             .authenticationProvider(authenticationProvider())
