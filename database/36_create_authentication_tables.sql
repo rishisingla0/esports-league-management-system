@@ -22,7 +22,12 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT chk_user_role
-        CHECK (role IN ('ORGANIZER', 'TEAM_MANAGER'))
+    CHECK (role IN (
+        'TEAM_MANAGER',
+        'ORGANIZER',
+        'PLAYER',
+        'VIEWER'
+    ))
 );
 
 

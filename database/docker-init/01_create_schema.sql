@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS esports_db;
+
+USE esports_db;
+
+SELECT DATABASE();
