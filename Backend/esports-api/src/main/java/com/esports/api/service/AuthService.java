@@ -100,6 +100,7 @@ user.setRole(role);
     public AuthResponse login(LoginRequest request) {
 
         String email = request.email().trim().toLowerCase();
+        
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -117,6 +118,12 @@ user.setRole(role);
         ));
 
         String token = jwtService.generateToken(user.getEmail());
+        if (!user.getRole().equalsIgnoreCase(request.role().trim())) {
+    throw new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED,
+            "Invalid email, password, or account type"
+    );
+}
 
         return buildAuthResponse(user, token);
     }
