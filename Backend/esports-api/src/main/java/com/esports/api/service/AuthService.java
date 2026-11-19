@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
+import java.util.Set;
 
 @Service
 public class AuthService {
@@ -57,7 +58,14 @@ private String organizerInviteCode = "";
         ? "TEAM_MANAGER"
         : request.role().trim().toUpperCase(Locale.ROOT);
 
-if (!role.equals("TEAM_MANAGER") && !role.equals("ORGANIZER")) {
+Set<String> allowedRoles = Set.of(
+        "TEAM_MANAGER",
+        "ORGANIZER",
+        "PLAYER",
+        "VIEWER"
+);
+
+if (!allowedRoles.contains(role)) {
     throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST,
             "Invalid account type"
