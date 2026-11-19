@@ -140,6 +140,11 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
                 .requestMatchers("/api/auth/me")
                     .authenticated()
 
+                // Manager workspace endpoints
+.requestMatchers("/api/manager/workspace/**")
+    .hasRole("TEAM_MANAGER")
+
+
                 // Public browsing
                 .requestMatchers(
                     HttpMethod.GET,
@@ -190,6 +195,62 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
                     HttpMethod.DELETE,
                     "/api/tournaments/**"
                 ).hasRole("ORGANIZER")
+                // Organizer registration management
+.requestMatchers(
+    HttpMethod.GET,
+    "/api/tournament-registrations/**"
+).hasRole("ORGANIZER")
+
+.requestMatchers(
+    HttpMethod.PUT,
+    "/api/tournament-registrations/**"
+).hasRole("ORGANIZER")
+
+
+// Organizer: create, update and delete matches
+.requestMatchers(HttpMethod.POST, "/api/matches/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.PUT, "/api/matches/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.DELETE, "/api/matches/**")
+    .hasRole("ORGANIZER")
+
+// Organizer: manage participating teams
+.requestMatchers(HttpMethod.GET, "/api/match-teams/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.POST, "/api/match-teams/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.PUT, "/api/match-teams/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.DELETE, "/api/match-teams/**")
+    .hasRole("ORGANIZER")
+
+// Organizer: read active team rosters
+.requestMatchers(HttpMethod.GET, "/api/team-rosters/**")
+    .hasRole("ORGANIZER")
+
+// Organizer: manage match squads
+.requestMatchers(HttpMethod.GET, "/api/match-squad-players/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.POST, "/api/match-squad-players/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.DELETE, "/api/match-squad-players/**")
+    .hasRole("ORGANIZER")
+
+// Organizer: enter player performance
+.requestMatchers(HttpMethod.GET, "/api/player-performances/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.POST, "/api/player-performances/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.PUT, "/api/player-performances/**")
+    .hasRole("ORGANIZER")
+.requestMatchers(HttpMethod.DELETE, "/api/player-performances/**")
+    .hasRole("ORGANIZER")
+
+// Organizer: enter team results
+.requestMatchers(HttpMethod.PUT, "/api/match-results/**")
+    .hasRole("ORGANIZER")
+
 
                 // Everything else requires an explicit rule
                 .anyRequest().denyAll()

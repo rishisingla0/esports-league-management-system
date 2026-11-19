@@ -14,6 +14,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Locale;
+import org.springframework.beans.factory.annotation.Value;
+import java.util.Set;
 
 @Service
 public class AuthService {
@@ -35,6 +40,9 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    @Value("${ORGANIZER_INVITE_CODE:}")
+private String organizerInviteCode = "";
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
 
@@ -46,6 +54,30 @@ public class AuthService {
                     "Email is already registered"
             );
         }
+        String role = request.role() == null || request.role().isBlank()
+        ? "TEAM_MANAGER"
+        : request.role().trim().toUpperCase(Locale.ROOT);
+
+Set<String> allowedRoles = Set.of(
+        "TEAM_MANAGER",
+        "ORGANIZER",
+        "PLAYER",
+        "VIEWER"
+);
+
+if (!allowedRoles.contains(role)) {
+    throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Invalid account type"
+    );
+}
+
+if (role.equals("ORGANIZER") && !isValidOrganizerInviteCode(request.inviteCode())) {
+    throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "A valid Organizer invitation code is required"
+    );
+}
 
         User user = new User();
         user.setFullName(request.fullName().trim());
@@ -54,8 +86,8 @@ public class AuthService {
                 passwordEncoder.encode(request.password())
         );
 
-        // Public registration can NEVER choose ORGANIZER.
-        user.setRole("TEAM_MANAGER");
+// Organizer registration is allowed only after invitation validation.
+user.setRole(role);
         user.setEnabled(true);
 
         User savedUser = userRepository.save(user);
@@ -68,6 +100,7 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         String email = request.email().trim().toLowerCase();
+        
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -85,6 +118,12 @@ public class AuthService {
         ));
 
         String token = jwtService.generateToken(user.getEmail());
+        if (!user.getRole().equalsIgnoreCase(request.role().trim())) {
+    throw new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED,
+            "Invalid email, password, or account type"
+    );
+}
 
         return buildAuthResponse(user, token);
     }
@@ -100,4 +139,18 @@ public class AuthService {
                 user.getRole()
         );
     }
+    private boolean isValidOrganizerInviteCode(String suppliedCode) {
+
+    if (organizerInviteCode == null
+            || organizerInviteCode.isBlank()
+            || suppliedCode == null
+            || suppliedCode.isBlank()) {
+        return false;
+    }
+
+    return MessageDigest.isEqual(
+            organizerInviteCode.getBytes(StandardCharsets.UTF_8),
+            suppliedCode.trim().getBytes(StandardCharsets.UTF_8)
+    );
+}
 }
