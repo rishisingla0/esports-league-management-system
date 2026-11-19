@@ -1,4 +1,3 @@
-
 package com.esports.api.dto;
 
 import jakarta.validation.constraints.Email;
@@ -18,6 +17,17 @@ public record RegisterRequest(
 
     @NotBlank
     @Size(min = 8, max = 72)
-    String password
+    String password,
 
-) {}
+    @Size(max = 30)
+    String role,
+
+    @Size(max = 256)
+    String inviteCode
+
+) {
+    // Backward compatibility with existing 3-argument code.
+    public RegisterRequest(String fullName, String email, String password) {
+        this(fullName, email, password, null, null);
+    }
+}

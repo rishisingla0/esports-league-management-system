@@ -140,6 +140,11 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
                 .requestMatchers("/api/auth/me")
                     .authenticated()
 
+                // Manager workspace endpoints
+.requestMatchers("/api/manager/workspace/**")
+    .hasRole("TEAM_MANAGER")
+
+
                 // Public browsing
                 .requestMatchers(
                     HttpMethod.GET,
@@ -190,6 +195,16 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
                     HttpMethod.DELETE,
                     "/api/tournaments/**"
                 ).hasRole("ORGANIZER")
+                // Organizer registration management
+.requestMatchers(
+    HttpMethod.GET,
+    "/api/tournament-registrations/**"
+).hasRole("ORGANIZER")
+
+.requestMatchers(
+    HttpMethod.PUT,
+    "/api/tournament-registrations/**"
+).hasRole("ORGANIZER")
 
                 // Everything else requires an explicit rule
                 .anyRequest().denyAll()

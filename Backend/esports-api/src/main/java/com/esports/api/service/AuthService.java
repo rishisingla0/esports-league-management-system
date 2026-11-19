@@ -14,6 +14,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Locale;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class AuthService {
@@ -35,6 +39,9 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    @Value("${ORGANIZER_INVITE_CODE:}")
+private String organizerInviteCode = "";
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
 
@@ -46,6 +53,23 @@ public class AuthService {
                     "Email is already registered"
             );
         }
+        String role = request.role() == null || request.role().isBlank()
+        ? "TEAM_MANAGER"
+        : request.role().trim().toUpperCase(Locale.ROOT);
+
+if (!role.equals("TEAM_MANAGER") && !role.equals("ORGANIZER")) {
+    throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Invalid account type"
+    );
+}
+
+if (role.equals("ORGANIZER") && !isValidOrganizerInviteCode(request.inviteCode())) {
+    throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "A valid Organizer invitation code is required"
+    );
+}
 
         User user = new User();
         user.setFullName(request.fullName().trim());
@@ -54,8 +78,8 @@ public class AuthService {
                 passwordEncoder.encode(request.password())
         );
 
-        // Public registration can NEVER choose ORGANIZER.
-        user.setRole("TEAM_MANAGER");
+// Organizer registration is allowed only after invitation validation.
+user.setRole(role);
         user.setEnabled(true);
 
         User savedUser = userRepository.save(user);
@@ -100,4 +124,18 @@ public class AuthService {
                 user.getRole()
         );
     }
+    private boolean isValidOrganizerInviteCode(String suppliedCode) {
+
+    if (organizerInviteCode == null
+            || organizerInviteCode.isBlank()
+            || suppliedCode == null
+            || suppliedCode.isBlank()) {
+        return false;
+    }
+
+    return MessageDigest.isEqual(
+            organizerInviteCode.getBytes(StandardCharsets.UTF_8),
+            suppliedCode.trim().getBytes(StandardCharsets.UTF_8)
+    );
+}
 }
