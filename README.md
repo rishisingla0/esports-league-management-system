@@ -188,3 +188,7 @@ Use Postman to test the available endpoints.
 ## Work Logs
 
 Development progress is documented in [`docs/work-logs/`](docs/work-logs/).
+
+PS C:\Users\rohan\OneDrive\Desktop\LAPPY\STUDY\DBMS\esports-league-management-system\Backend\esports-api> $env:JWT_SECRET="jAX4a24Aqp2aFYg4ExX2Y1Ovx3lsjNrwmU+vOwZIRbM"
+PS C:\Users\rohan\OneDrive\Desktop\LAPPY\STUDY\DBMS\esports-league-management-system\Backend\esports-api> $env:DB_PASSWORD = '@Rohan24may'    
+PS C:\Users\rohan\OneDrive\Desktop\LAPPY\STUDY\DBMS\esports-league-management-system\Backend\esports-api> .\mvnw.cmd spring-boot:run    

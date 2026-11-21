@@ -1,3 +1,4 @@
+
 package com.esports.api.service;
 
 import com.esports.api.dto.AuthResponse;
@@ -14,10 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+
 import java.util.Locale;
-import org.springframework.beans.factory.annotation.Value;
 import java.util.Set;
 
 @Service
@@ -40,13 +39,10 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    @Value("${ORGANIZER_INVITE_CODE:}")
-private String organizerInviteCode = "";
-
     @Transactional
     public AuthResponse register(RegisterRequest request) {
 
-        String email = request.email().trim().toLowerCase();
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
 
         if (userRepository.existsByEmail(email)) {
             throw new ResponseStatusException(
@@ -54,30 +50,24 @@ private String organizerInviteCode = "";
                     "Email is already registered"
             );
         }
+
         String role = request.role() == null || request.role().isBlank()
-        ? "TEAM_MANAGER"
-        : request.role().trim().toUpperCase(Locale.ROOT);
+                ? "TEAM_MANAGER"
+                : request.role().trim().toUpperCase(Locale.ROOT);
 
-Set<String> allowedRoles = Set.of(
-        "TEAM_MANAGER",
-        "ORGANIZER",
-        "PLAYER",
-        "VIEWER"
-);
+        // Organizer accounts must be created administratively.
+        Set<String> allowedRoles = Set.of(
+                "TEAM_MANAGER",
+                "PLAYER",
+                "VIEWER"
+        );
 
-if (!allowedRoles.contains(role)) {
-    throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "Invalid account type"
-    );
-}
-
-if (role.equals("ORGANIZER") && !isValidOrganizerInviteCode(request.inviteCode())) {
-    throw new ResponseStatusException(
-            HttpStatus.FORBIDDEN,
-            "A valid Organizer invitation code is required"
-    );
-}
+        if (!allowedRoles.contains(role)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Organizer accounts must be provisioned by an administrator"
+            );
+        }
 
         User user = new User();
         user.setFullName(request.fullName().trim());
@@ -85,9 +75,7 @@ if (role.equals("ORGANIZER") && !isValidOrganizerInviteCode(request.inviteCode()
         user.setPasswordHash(
                 passwordEncoder.encode(request.password())
         );
-
-// Organizer registration is allowed only after invitation validation.
-user.setRole(role);
+        user.setRole(role);
         user.setEnabled(true);
 
         User savedUser = userRepository.save(user);
@@ -99,8 +87,7 @@ user.setRole(role);
 
     public AuthResponse login(LoginRequest request) {
 
-        String email = request.email().trim().toLowerCase();
-        
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -117,13 +104,18 @@ user.setRole(role);
                 "User not found"
         ));
 
+        String requestedRole = request.role() == null
+                ? ""
+                : request.role().trim();
+
+        if (!user.getRole().equalsIgnoreCase(requestedRole)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid email, password, or account type"
+            );
+        }
+
         String token = jwtService.generateToken(user.getEmail());
-        if (!user.getRole().equalsIgnoreCase(request.role().trim())) {
-    throw new ResponseStatusException(
-            HttpStatus.UNAUTHORIZED,
-            "Invalid email, password, or account type"
-    );
-}
 
         return buildAuthResponse(user, token);
     }
@@ -139,18 +131,4 @@ user.setRole(role);
                 user.getRole()
         );
     }
-    private boolean isValidOrganizerInviteCode(String suppliedCode) {
-
-    if (organizerInviteCode == null
-            || organizerInviteCode.isBlank()
-            || suppliedCode == null
-            || suppliedCode.isBlank()) {
-        return false;
-    }
-
-    return MessageDigest.isEqual(
-            organizerInviteCode.getBytes(StandardCharsets.UTF_8),
-            suppliedCode.trim().getBytes(StandardCharsets.UTF_8)
-    );
-}
 }

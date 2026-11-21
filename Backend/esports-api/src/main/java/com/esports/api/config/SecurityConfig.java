@@ -145,21 +145,25 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
     .hasRole("TEAM_MANAGER")
 
 
-                // Public browsing
-                .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/games/**",
-                    "/api/organizations/**",
-                    "/api/tournaments/**",
-                    "/api/teams/**",
-                    "/api/players/**",
-                    "/api/coaches/**",
-                    "/api/leaderboards/**",
-                    "/api/analytics/**",
-                    "/api/matches/**",
-                    "/api/match-results/**",
-                     "/api/dashboard/summary"
-                ).permitAll()
+// Public browsing
+.requestMatchers(
+    HttpMethod.GET,
+    "/api/games/**",
+    "/api/organizations/**",
+    "/api/tournaments/**",
+    "/api/teams/**",
+    "/api/team-rosters",
+    "/api/team-rosters/**",
+"/api/players/**",
+"/api/player-game-profiles",
+"/api/player-game-profiles/**",
+"/api/coaches/**",
+    "/api/leaderboards/**",
+    "/api/analytics/**",
+    "/api/matches/**",
+    "/api/match-results/**",
+    "/api/dashboard/summary"
+).permitAll()
 
                 // Team Manager operations
                 .requestMatchers("/api/onboarding/**")
@@ -223,10 +227,6 @@ public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
 .requestMatchers(HttpMethod.PUT, "/api/match-teams/**")
     .hasRole("ORGANIZER")
 .requestMatchers(HttpMethod.DELETE, "/api/match-teams/**")
-    .hasRole("ORGANIZER")
-
-// Organizer: read active team rosters
-.requestMatchers(HttpMethod.GET, "/api/team-rosters/**")
     .hasRole("ORGANIZER")
 
 // Organizer: manage match squads
